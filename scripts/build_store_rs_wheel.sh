@@ -74,6 +74,15 @@ cmake --install "${BUILD_DIR_ABS}" \
     --component python \
     --prefix "${STORE_RS_PYTHON_PREFIX}"
 
+# The manylinux CUDA images provide yaml-cpp 0.7 under /opt/conda/lib while
+# AlmaLinux installs yaml-cpp 0.6 under /usr/lib64. Store-RS adds
+# libtent_shared.so to the wheel, exposing its yaml-cpp dependency to
+# auditwheel. Keep the exact library selected by CMake discoverable during
+# repair instead of letting auditwheel see only the incompatible system ABI.
+if [[ -d /opt/conda/lib ]]; then
+    export LD_LIBRARY_PATH="/opt/conda/lib:${LD_LIBRARY_PATH:-}"
+fi
+
 cd "${ROOT_DIR}"
 INCLUDE_STORE_RS=1 \
 STORE_RS_PYTHON_PREFIX="${STORE_RS_PYTHON_PREFIX}" \
